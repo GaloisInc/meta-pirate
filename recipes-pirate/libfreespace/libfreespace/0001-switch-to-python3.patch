@@ -1,0 +1,260 @@
+diff --git a/common/messageCodeGenerator.py b/common/messageCodeGenerator.py
+index 8c6700d..d9648ee 100755
+--- a/common/messageCodeGenerator.py
++++ b/common/messageCodeGenerator.py
+@@ -21,6 +21,9 @@ import sys
+ import argparse
+ import os
+ 
++def cmp(a, b):
++    return (a > b) - (a < b) 
++
+ def compareMessages(a, b):
+     # Sort ID[0] before ID[1] before ID[2]
+     if len(a.ID[0]) != 0:
+@@ -50,6 +53,25 @@ def compareMessages(a, b):
+         else:
+             return 0
+ 
++def cmp_to_key(mycmp):
++    'Convert a cmp= function into a key= function'
++    class K:
++        def __init__(self, obj, *args):
++            self.obj = obj
++        def __lt__(self, other):
++            return mycmp(self.obj, other.obj) < 0
++        def __gt__(self, other):
++            return mycmp(self.obj, other.obj) > 0
++        def __eq__(self, other):
++            return mycmp(self.obj, other.obj) == 0
++        def __le__(self, other):
++            return mycmp(self.obj, other.obj) <= 0
++        def __ge__(self, other):
++            return mycmp(self.obj, other.obj) >= 0
++        def __ne__(self, other):
++            return mycmp(self.obj, other.obj) != 0
++    return K
++
+ class MessageCodeGenerator:
+ 
+     inclDir = ""
+@@ -60,8 +82,7 @@ class MessageCodeGenerator:
+         self.srcDir = src
+ 
+     def writeMessages(self, messages):
+-        messages.sort(compareMessages)
+-
++        messages = sorted(messages, key=cmp_to_key(compareMessages))
+ 
+         codecsFileName = "freespace_codecs"
+         printersFileName = "freespace_printers"
+@@ -353,7 +374,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
+                 if message.ID[v]['constID'] in usedIDs:
+                     continue
+                 file.write("\t\t\t\tcase %d:"%message.ID[v]['constID'])
+-                if message.ID[v].has_key('subId'):
++                if message.ID[v].__contains__('subId'):
+                     file.write('''
+                     switch (message[%d]) {''' % subIdMap[v])
+                     for subMessage in messages:
+@@ -474,10 +495,10 @@ def extractFields(message):
+         for field in version:
+             if field['name'] == 'RESERVED':
+                 continue
+-            if field.has_key('cType'):
+-                if not fields.has_key(field['name']):
++            if field.__contains__('cType'):
++                if not fields.__contains__(field['name']):
+                     item = cTypeToTypeInfo(field['cType'], field['size'])
+-                    if field.has_key('comment'):
++                    if field.__contains__('comment'):
+                         item['Doc'] = field['comment']
+                     else:
+                         item['Doc'] = ""
+@@ -489,13 +510,13 @@ def extractFields(message):
+                     fieldsList.append(item)
+                 else:
+                     field['typeDecode'] = fields[field['name']]
+-            elif field.has_key('bits'):
++            elif field.__contains__('bits'):
+                 for bit in field['bits']:
+                     if bit['name'] == 'RESERVED':
+                         continue
+-                    if not fields.has_key(bit['name']):
++                    if not fields.__contains__(bit['name']):
+                         item = bitToTypeInfo(bit)
+-                        if bit.has_key('comment'):
++                        if bit.__contains__('comment'):
+                             item['Doc'] = bit['comment']
+                         else:
+                             item['Doc'] = ""
+@@ -505,13 +526,13 @@ def extractFields(message):
+                         fieldsList.append(item)
+                     else:
+                         bit['typeDecode'] = fields[bit['name']]
+-            elif field.has_key('nibbles'):
++            elif field.__contains__('nibbles'):
+                 for nibble in field['nibbles']:
+                     if nibble['name'] == 'RESERVED':
+                         continue
+-                    if not fields.has_key(nibble['name']):
++                    if not fields.__contains__(nibble['name']):
+                         item = {'type':'int', 'signed':False, 'length':4, 'count':1, 'warning':'no'}
+-                        if nibble.has_key('comment'):
++                        if nibble.__contains__('comment'):
+                             item['Doc'] = nibble['comment']
+                         else:
+                             item['Doc'] = ""
+@@ -558,7 +579,7 @@ def cTypeToTypeInfo(ct, sizeInBytes):
+     return typeInfo
+     
+ def bitToTypeInfo(bt):
+-    if not bt.has_key('size'):
++    if not bt.__contains__('size'):
+         return {'type':'uint8_t', 'signed':False, 'length':1, 'count':1, 'warning':'no'}
+     elif bt['size'] == 1:
+         return {'type':'uint8_t', 'signed':False, 'length':1, 'count':1, 'warning':'no'}
+@@ -641,19 +662,19 @@ def writeEncodeBody(message, fields, outFile):
+                 outFile.write("\t\t\tmessage[3] = m->src;\n")
+                 outFile.write("\t\t\toffset = 4;\n")
+             # Message sub ID, if defined
+-            if message.ID[v].has_key('subId'):
++            if message.ID[v].__contains__('subId'):
+                 outFile.write("\t\t\tmessage[%d + offset] = (uint8_t) %d;\n" % (byteCounter, message.ID[v]['subId']['id']))
+                 byteCounter += 1
+ 
+             # Message fields
+             for field in message.Fields[v]:
+-                if field.has_key('synthesized'):
++                if field.__contains__('synthesized'):
+                     continue
+                 elementSize = field['size']
+                 if field['name'] == 'RESERVED':
+                     byteCounter += elementSize
+                     continue
+-                if field.has_key('bits'):
++                if field.__contains__('bits'):
+                     bitoffset = 0
+                     exprs = []
+                     for bit in field['bits']:
+@@ -665,7 +686,7 @@ def writeEncodeBody(message, fields, outFile):
+                     exprs = "\n\t\t\t\t\t\t\t\t|  ".join(exprs)
+                     outFile.write('\t\t\tmessage[%d + offset] = (%s);\n' % (byteCounter, exprs))
+                     byteCounter += 1
+-                elif field.has_key('nibbles'):
++                elif field.__contains__('nibbles'):
+                     outFile.write('\t\t\tmessage[%d + offset] = byteFromNibbles('%byteCounter)
+                     firstLoop = True
+                     for nibble in field['nibbles']:
+@@ -679,13 +700,13 @@ def writeEncodeBody(message, fields, outFile):
+                             outFile.write('s->%s'%nibble['name']);
+                     outFile.write(');\n')
+                     byteCounter += 1
+-                elif field.has_key('cType'):
++                elif field.__contains__('cType'):
+                     if field['typeDecode']['count'] == 1:
+-                        for j in range (field['typeDecode']['width']):
++                        for j in range (int(field['typeDecode']['width'])):
+                             outFile.write('\t\t\tmessage[%d + offset] = s->%s >> %d;\n'%(byteCounter, field['name'], 8 * j))
+                             byteCounter += 1
+                     else:
+-                        for i in range (field['typeDecode']['count']):
++                        for i in range (int(field['typeDecode']['count'])):
+                             for j in range (field['typeDecode']['width']):
+                                 outFile.write('\t\t\tmessage[%d + offset] = s->%s[%d] >> %d;\n'%(byteCounter, field['name'], i, 8 * j))
+                                 byteCounter += 1
+@@ -732,7 +753,7 @@ def writeDecodeBody(message, fields, outFile):
+                 outFile.write("\t\t\tm->dest = message[2];\n")
+                 outFile.write("\t\t\tm->src = message[3];\n")
+ 
+-            if message.ID[v].has_key('subId'):
++            if message.ID[v].__contains__('subId'):
+                 outFile.write('''
+             if ((uint8_t) message[offset] != %d) {
+                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
+@@ -740,32 +761,32 @@ def writeDecodeBody(message, fields, outFile):
+ '''%message.ID[v]['subId']['id'])
+                 byteCounter += 1
+             for field in message.Fields[v]:
+-                if field.has_key('synthesized'):
++                if field.__contains__('synthesized'):
+                     continue
+                 elementSize = field['size']
+                 if field['name'] == 'RESERVED':
+                     byteCounter += elementSize
+                     continue
+-                if field.has_key('cType'):
++                if field.__contains__('cType'):
+                     if field['typeDecode']['count'] == 1:
+                         outFile.write("\t\t\ts->%s = %s(&message[%d + offset]);\n" % (field['name'], IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                         byteCounter += field['typeDecode']['width']
+                     else:
+-                        for i in range (field['typeDecode']['count']):
++                        for i in range (int(field['typeDecode']['count'])):
+                             outFile.write("\t\t\ts->%s[%d] = %s(&message[%d + offset]);\n" % (field['name'], i, IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                             byteCounter += field['typeDecode']['width']
+-                elif field.has_key('bits'):
++                elif field.__contains__('bits'):
+                     bitCounter = 0
+                     for bit in field['bits']:
+                         if bit['name'] != 'RESERVED':
+-                            if bit.has_key('size'):
++                            if bit.__contains__('size'):
+                                 outFile.write("\t\t\ts->%s = (uint8_t) ((message[%d + offset] >> %d) & 0x%02X);\n"%(bit['name'], byteCounter, bitCounter, 2**bit['size']-1))
+                                 bitCounter += bit['size']-1
+                             else:
+                                 outFile.write("\t\t\ts->%s = getBit(message[%d + offset], %d);\n"%(bit['name'], byteCounter, bitCounter))
+                         bitCounter += 1
+                     byteCounter += 1
+-                elif field.has_key('nibbles'):
++                elif field.__contains__('nibbles'):
+ 
+                     nibbleCounter = 0
+                     for nibble in field['nibbles']:
+@@ -776,7 +797,7 @@ def writeDecodeBody(message, fields, outFile):
+                 else:
+                     print ("Unrecognized field type in %s\n" % message.name)
+             for field in message.Fields[v]:
+-                if field.has_key('synthesized'):
++                if field.__contains__('synthesized'):
+                     outFile.write(specialCaseCode(field['synthesized']))
+             outFile.write("\t\t\treturn FREESPACE_SUCCESS;\n")
+     # Default case
+@@ -939,7 +960,9 @@ def main(argv=None):
+         d = {}
+         
+         for f in args.messageFiles:
+-            execfile(f, g, d)
++            with open(f, "rb") as sf:
++                code = compile(sf.read(), f, "exec")
++            exec(code, g, d)
+             messages.extend(d['messages'])
+ 
+         includeDir = os.path.join(args.include, "freespace")
+@@ -954,7 +977,7 @@ def main(argv=None):
+             srcDir
+         )
+         mcg.writeMessages(messages)
+-    except Usage, err:
++    except Usage as err:
+         print >>sys.stderr, err.msg
+         print >>sys.stderr, "for help use --help"
+         return 2
+diff --git a/common/setupMessages.py b/common/setupMessages.py
+index 01ae4f7..2bacab9 100644
+--- a/common/setupMessages.py
++++ b/common/setupMessages.py
+@@ -57,11 +57,11 @@ class Message:
+         size = 1 # Add one for the opening message type byte
+         if version == 2:
+             size += 3 # Account for len, dest, src bytes
+-        if self.ID[version].has_key('subId'):
++        if self.ID[version].__contains__('subId'):
+             size += self.ID[version]['subId']['size']
+         if len(self.Fields[version]):
+             for element in self.Fields[version]:
+-                if element.has_key('synthesized'):
++                if element.__contains__('synthesized'):
+                     continue
+                 size += element['size']
+         return size
