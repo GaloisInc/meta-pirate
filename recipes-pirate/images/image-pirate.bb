@@ -2,7 +2,7 @@ SUMMARY = "Image with PIRATE components."
 
 include recipes-sato/images/core-image-sato.bb
 
-IMAGE_INSTALL += "vim googletest mpeg2dec vlc x11vnc libusb-compat libfreespace"
+IMAGE_INSTALL += "vim googletest mpeg2dec vlc x11vnc libusb-compat libfreespace pirate"
 IMAGE_FEATURES += "ssh-server-dropbear"
 IMAGE_FEATURE_remove += "psplash"
 
