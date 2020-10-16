@@ -1,0 +1,26 @@
+diff --git a/demos/camera_demo/src/main-gaps.cpp b/demos/camera_demo/src/main-gaps.cpp
+index 7d22a2e..e83d55d 100644
+--- a/demos/camera_demo/src/main-gaps.cpp
++++ b/demos/camera_demo/src/main-gaps.cpp
+@@ -51,7 +51,7 @@ static int waitInterrupt(void* arg) {
+     pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+ 
+     fd = signalfd(-1, &set, 0);
+-    read(fd, &unused, sizeof(unused));
++    (void)read(fd, &unused, sizeof(unused));
+ 
+     interrupted = true;
+     return 0;
+diff --git a/demos/camera_demo/src/main-monolith.cpp b/demos/camera_demo/src/main-monolith.cpp
+index cd9db4d..7d00a73 100644
+--- a/demos/camera_demo/src/main-monolith.cpp
++++ b/demos/camera_demo/src/main-monolith.cpp
+@@ -48,7 +48,7 @@ static int waitInterrupt(void* arg) {
+     pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+ 
+     fd = signalfd(-1, &set, 0);
+-    read(fd, &unused, sizeof(unused));
++    (void)read(fd, &unused, sizeof(unused));
+ 
+     interrupted = true;
+     return 0;
