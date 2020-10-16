@@ -77,8 +77,8 @@ ls meta*/conf/machine/*.conf
 In *layers* or *poky* directories
 
 #### Update Downloads and Sstate-Cache Locations (optional)
-To optimize builds for multiple machines fetched sources and build artifacts
-should be stored outside of local build environment
+To optimize builds for multiple machines, fetched sources and build artifacts
+should be stored outside of the build directory
 
 Un-comment and update the *DL_DIR* and *SSTATE_DIR* variables
 ```
@@ -105,13 +105,14 @@ Add the *LICENSE_FLAGS_WHITELIST* variable
 LICENSE_FLAGS_WHITELIST = " commercial_libav commercial_x264 commercial"
 ```
 
-#### Additional Changes for Raspberry Pi Plaftorms
-Add the *IMAGE_FSTYPES* variable to enable generation of SD card images
+#### Additional Changes for Raspberry Pi Platforms
+**NOTE** Apply this change only when a Raspberry Pi is the target machine.
+Add the *IMAGE_FSTYPES* variable to enable generation of SD card images.
 ```
 IMAGE_FSTYPES = "tar.xz ext3 rpi-sdimg"
 ```
 If the target system is not using a monitor, add the *GPU_MEM* to reduce the
-amount of memory allocated to GPU
+amount of memory allocated to GPU.
 ```
 GPU_MEM = "16"
 ```
@@ -121,7 +122,7 @@ GPU_MEM = "16"
 ```
 bitbake image-pirate
 ```
-This step takes a long time to complete
+The first successful execution of this command will take a long time.
 
 ## Run
 
@@ -130,7 +131,7 @@ This step takes a long time to complete
 runqemu qemuarm
 ```
 **NOTE**
-* sudo is needed to create virtual network device on the host machine. Add **slirp** option if the QEMU instance does not need to communicate via network
+* sudo is needed to create a virtual network device on the host machine. Add **slirp** option if the QEMU instance does not need to communicate via network
 * use **nographic** to run the instance in no graphic (terminal only) mode
 
 ### Raspberry Pi
@@ -140,6 +141,14 @@ cd cd tmp/deploy/images/raspberrypi*
 ls image-pirate-raspberrypi*.rootfs.rpi-sdimg
 ```
 
+## Pirate Components
+* Include files ```/usr/include```
+* PIRATE shared libraries ```/usr/include```
+* PIRATE unit test /opt/pirate/utest
+* PIRATE demos /opt/pirate/demos
 
 # References
-[Yocto Project Quick Start](https://www.yoctoproject.org/docs/1.8/yocto-project-qs/yocto-project-qs.html)
+* [Yocto Project Quick Start](https://www.yoctoproject.org/docs/1.8/yocto-project-qs/yocto-project-qs.html)
+* [Yocto Project Development Tasks Manual](https://www.yoctoproject.org/docs/latest/dev-manual/dev-manual.html)
+* [Yocto Project Reference Manual](https://www.yoctoproject.org/docs/latest/ref-manual/ref-manual.html)
+* [Live Coding with Yocto Project](https://www.youtube.com/watch?v=ThTl4FItfMI&list=PLD4M5FoHz-TxMfBFrDKfIS_GLY25Qsfyj)
