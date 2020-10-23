@@ -24,3 +24,16 @@ index cd9db4d..7d00a73 100644
  
      interrupted = true;
      return 0;
+diff --git a/demos/channel_demo/CMakeLists.txt b/demos/channel_demo/CMakeLists.txt
+index c88991a..77abfe1 100644
+--- a/demos/channel_demo/CMakeLists.txt
++++ b/demos/channel_demo/CMakeLists.txt
+@@ -6,7 +6,7 @@ set(VERSION 0.0.2)
+ set(CMAKE_BUILD_TYPE RelwithDebInfo)
+ 
+ # Build flags
+-SET(BUILD_FLAGS ${PIRATE_C_FLAGS} "-O0" "-g")
++SET(BUILD_FLAGS ${PIRATE_C_FLAGS} "-O2" "-g")
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEMO_VERSION='\"${VERSION}\"'")
+ 
+ # Common
