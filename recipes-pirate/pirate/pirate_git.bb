@@ -30,7 +30,6 @@ do_install() {
     # Library
     install -d ${D}/${libdir}
     install -m 0755 ${B}/libpirate/libpirate.so ${D}/${libdir}/libpirate.so.1.0
-    install -m 0755 ${B}/libpirate/libpirate++.so ${D}/${libdir}/libpirate++.so.1.0
 
     # Demos
     install -d ${D}/opt/pirate/demos
@@ -67,5 +66,4 @@ do_install() {
     # Library symbolic links
     cd ${D}/${libdir}
     ln -sf libpirate.so.1.0 libpirate.so
-    ln -sf libpirate++.so.1.0 libpirate++.so
 }
